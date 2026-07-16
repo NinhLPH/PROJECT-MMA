@@ -1,0 +1,14 @@
+[
+  {
+    "_id": { "$oid": "653a1e7f9d8e7f6a5b4c3d51" },
+    "userId": { "$oid": "653a1b2c9d8e7f6a5b4c3d21" },
+    "trainerId": { "$oid": "653a1c5d9d8e7f6a5b4c3d31" },
+    "date": "2023-11-15",
+    "timeSlot": "08:00 - 09:30",
+    "totalPrice": 750000,
+    "status": "confirmed",
+    "paymentStatus": "paid",
+    "createdAt": { "$date": "2023-10-26T10:15:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:15:00Z" }
+  }
+]

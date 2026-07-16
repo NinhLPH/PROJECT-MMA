@@ -1,0 +1,22 @@
+[
+  {
+    "_id": { "$oid": "653a1b2c9d8e7f6a5b4c3d21" },
+    "email": "nguyen.vana@gmail.com",
+    "password": "$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+    "fullName": "Nguyễn Văn A",
+    "phoneNumber": "0901234567",
+    "role": "customer",
+    "createdAt": { "$date": "2023-10-26T10:00:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "653a1b2c9d8e7f6a5b4c3d22" },
+    "email": "admin.flexfit@gmail.com",
+    "password": "$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+    "fullName": "Quản Trị Viên FlexFit",
+    "phoneNumber": "0987654321",
+    "role": "admin",
+    "createdAt": { "$date": "2023-10-26T10:00:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:00:00Z" }
+  }
+]

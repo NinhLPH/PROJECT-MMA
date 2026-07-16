@@ -1,0 +1,22 @@
+[
+  {
+    "_id": { "$oid": "653a1c5d9d8e7f6a5b4c3d31" },
+    "fullName": "Lê Quốc Cường",
+    "avatar": "https://randomuser.me/api/portraits/men/32.jpg",
+    "specialty": "Tăng cơ & Sức mạnh",
+    "bio": "Hơn 5 năm kinh nghiệm huấn luyện thể hình chuyên nghiệp. Đạt nhiều giải thưởng Fitness cấp quốc gia.",
+    "pricePerHour": 500000,
+    "createdAt": { "$date": "2023-10-26T10:05:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:05:00Z" }
+  },
+  {
+    "_id": { "$oid": "653a1c5d9d8e7f6a5b4c3d32" },
+    "fullName": "Phạm Thu Hương",
+    "avatar": "https://randomuser.me/api/portraits/women/44.jpg",
+    "specialty": "Yoga & Giảm mỡ",
+    "bio": "Chuyên gia Yoga quốc tế với bằng cấp RYT-500. Giúp bạn lấy lại vóc dáng thon gọn và tinh thần thư thái.",
+    "pricePerHour": 400000,
+    "createdAt": { "$date": "2023-10-26T10:06:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:06:00Z" }
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "_id": { "$oid": "653a1d6e9d8e7f6a5b4c3d41" },
+    "trainerId": { "$oid": "653a1c5d9d8e7f6a5b4c3d31" },
+    "date": "2023-11-15",
+    "timeSlot": "08:00 - 09:30",
+    "isBooked": true,
+    "createdAt": { "$date": "2023-10-26T10:10:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:15:00Z" }
+  },
+  {
+    "_id": { "$oid": "653a1d6e9d8e7f6a5b4c3d42" },
+    "trainerId": { "$oid": "653a1c5d9d8e7f6a5b4c3d31" },
+    "date": "2023-11-15",
+    "timeSlot": "15:00 - 16:30",
+    "isBooked": false,
+    "createdAt": { "$date": "2023-10-26T10:10:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "653a1d6e9d8e7f6a5b4c3d43" },
+    "trainerId": { "$oid": "653a1c5d9d8e7f6a5b4c3d32" },
+    "date": "2023-11-16",
+    "timeSlot": "18:00 - 19:30",
+    "isBooked": false,
+    "createdAt": { "$date": "2023-10-26T10:12:00Z" },
+    "updatedAt": { "$date": "2023-10-26T10:12:00Z" }
+  }
+]
