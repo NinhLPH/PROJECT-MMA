@@ -1,9 +1,12 @@
-import type { ComponentProps } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+
+import { AppButton } from "@/components/ui/AppButton";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { COLORS, FONT_FAMILIES, SPACING } from "@/constants/theme";
 
 type MockScreenAction = {
   label: string;
-  onPress: NonNullable<ComponentProps<typeof Button>["onPress"]>;
+  onPress: () => void;
 };
 
 type MockScreenProps = {
@@ -14,43 +17,62 @@ type MockScreenProps = {
 
 export function MockScreen({ title, description, actions }: MockScreenProps) {
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      contentContainerStyle={styles.container}
+      safeAreaEdges={["top", "left", "right"]}
+    >
+      <Text style={styles.eyebrow}>FLEXFIT WORKSPACE</Text>
       <Text accessibilityRole="header" style={styles.title}>
         {title}
       </Text>
       <Text style={styles.description}>{description}</Text>
       <View style={styles.actions}>
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <View key={action.label} style={styles.action}>
-            <Button title={action.label} onPress={action.onPress} />
+            <AppButton
+              fullWidth
+              label={action.label}
+              onPress={action.onPress}
+              variant={index === 0 ? "primary" : "outline"}
+            />
           </View>
         ))}
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    alignSelf: "center",
     justifyContent: "center",
-    padding: 24,
+    maxWidth: 520,
+    width: "100%",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 12,
-    textAlign: "center",
+    color: COLORS.textPrimary,
+    fontFamily: FONT_FAMILIES.extraBold,
+    fontSize: 28,
+    lineHeight: 34,
+    marginTop: SPACING.xs,
   },
   description: {
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: "center",
+    color: COLORS.textSecondary,
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: 15,
+    lineHeight: 23,
+    marginTop: SPACING.sm,
   },
   actions: {
-    marginTop: 32,
+    marginTop: SPACING.xxl,
   },
   action: {
-    marginBottom: 12,
+    marginBottom: SPACING.sm,
+  },
+  eyebrow: {
+    color: COLORS.primary,
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: 11,
+    letterSpacing: 1.4,
   },
 });

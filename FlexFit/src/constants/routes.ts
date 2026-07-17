@@ -8,6 +8,7 @@ export const ROUTES = {
   TRAINER_DETAIL: asHref("/trainer/mock-trainer"),
   PAYMENT: asHref("/payment"),
   BOOKINGS: asHref("/bookings"),
+  PROFILE: asHref("/profile"),
 } as const;
 
 export const SCREEN_TITLES = {
@@ -16,4 +17,5 @@ export const SCREEN_TITLES = {
   TRAINER_DETAIL: "Chi tiết PT & Chọn lịch",
   PAYMENT: "Xác nhận & Thanh toán",
   BOOKINGS: "Lịch sử đặt lịch",
+  PROFILE: "Tài khoản",
 } as const;

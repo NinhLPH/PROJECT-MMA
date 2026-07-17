@@ -1,3 +1,4 @@
+import { forwardRef, type ReactNode } from "react";
 import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from "react-native";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -13,40 +14,59 @@ type AppTextInputProps = Omit<
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
+  rightAccessory?: ReactNode;
 };
 
-export function AppTextInput({
-  accessibilityLabel,
-  containerStyle,
-  editable = true,
-  error,
-  inputStyle,
-  label,
-  onChangeText,
-  value,
-  ...inputProps
-}: AppTextInputProps) {
-  return (
-    <View style={containerStyle}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        {...inputProps}
-        accessibilityLabel={accessibilityLabel ?? label}
-        editable={editable}
-        onChangeText={onChangeText}
-        placeholderTextColor={COLORS.textMuted}
-        selectionColor={COLORS.primary}
-        style={[styles.input, !editable && styles.inputDisabled, error && styles.inputError, inputStyle]}
-        value={value}
-      />
-      {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {error}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
+export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
+  function AppTextInput(
+    {
+      accessibilityLabel,
+      containerStyle,
+      editable = true,
+      error,
+      inputStyle,
+      label,
+      onChangeText,
+      rightAccessory,
+      value,
+      ...inputProps
+    },
+    ref,
+  ) {
+    return (
+      <View style={containerStyle}>
+        <Text style={styles.label}>{label}</Text>
+        <View
+          style={[
+            styles.inputFrame,
+            !editable && styles.inputDisabled,
+            error && styles.inputError,
+          ]}
+        >
+          <TextInput
+            {...inputProps}
+            ref={ref}
+            accessibilityLabel={accessibilityLabel ?? label}
+            editable={editable}
+            onChangeText={onChangeText}
+            placeholderTextColor={COLORS.textMuted}
+            selectionColor={COLORS.primary}
+            style={[styles.input, inputStyle]}
+            value={value}
+          />
+          {rightAccessory ? (
+            <View style={styles.rightAccessory}>{rightAccessory}</View>
+          ) : null}
+        </View>
+        {error ? (
+          <Text accessibilityRole="alert" style={styles.error}>
+            {error}
+          </Text>
+        ) : null}
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   error: {
@@ -56,11 +76,8 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   input: {
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
     color: COLORS.textPrimary,
+    flex: 1,
     fontFamily: FONT_FAMILIES.medium,
     fontSize: 15,
     minHeight: 48,
@@ -72,10 +89,26 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: COLORS.danger,
   },
+  inputFrame: {
+    alignItems: "center",
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    flexDirection: "row",
+    minHeight: 48,
+    overflow: "hidden",
+  },
   label: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.semibold,
     fontSize: 13,
     marginBottom: SPACING.xs,
+  },
+  rightAccessory: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+    minWidth: 48,
   },
 });
