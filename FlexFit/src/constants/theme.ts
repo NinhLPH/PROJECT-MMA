@@ -19,6 +19,7 @@ export const COLORS = {
   infoSoft: "#172A4A",
   white: "#FFFFFF",
   black: "#000000",
+  overlay: "rgba(0, 0, 0, 0.68)",
 } as const;
 
 export const SPACING = {
