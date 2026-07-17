@@ -14,6 +14,7 @@ type AppTextInputProps = Omit<
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
+  leftAccessory?: ReactNode;
   rightAccessory?: ReactNode;
 };
 
@@ -26,6 +27,7 @@ export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
       error,
       inputStyle,
       label,
+      leftAccessory,
       onChangeText,
       rightAccessory,
       value,
@@ -43,6 +45,9 @@ export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
             error && styles.inputError,
           ]}
         >
+          {leftAccessory ? (
+            <View style={styles.leftAccessory}>{leftAccessory}</View>
+          ) : null}
           <TextInput
             {...inputProps}
             ref={ref}
@@ -104,6 +109,12 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.semibold,
     fontSize: 13,
     marginBottom: SPACING.xs,
+  },
+  leftAccessory: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+    paddingLeft: SPACING.md,
   },
   rightAccessory: {
     alignItems: "center",

@@ -11,6 +11,13 @@ export const ROUTES = {
   PROFILE: asHref("/profile"),
 } as const;
 
+export const ROUTE_BUILDERS = {
+  trainerDetail: (id: string) =>
+    ({ pathname: "/trainer/[id]", params: { id } }) as Href,
+  payment: (params: { trainerId: string; date: string; timeSlot: string }) =>
+    ({ pathname: "/payment", params }) as Href,
+} as const;
+
 export const SCREEN_TITLES = {
   AUTH: "Đăng nhập / Đăng ký",
   HOME: "Trang chủ & Danh sách PT",
