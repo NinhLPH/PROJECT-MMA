@@ -23,7 +23,7 @@ export const TrainerCard = memo(function TrainerCard({ trainer, onPress }: Train
       style={({ pressed }) => [styles.card, pressed && onPress && styles.pressed]}
     >
       <View style={styles.accentRail} />
-      <AppAvatar label={`Ảnh ${trainer.fullName}`} source={trainer.avatar} size={72} />
+      <AppAvatar label={`Image ${trainer.fullName}`} source={trainer.avatar} size={72} />
       <View style={styles.content}>
         <Text style={styles.eyebrow}>HUẤN LUYỆN VIÊN</Text>
         <Text numberOfLines={1} style={styles.name}>

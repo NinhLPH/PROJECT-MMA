@@ -26,7 +26,7 @@ export function BookingSummaryCard({
       <View style={styles.redRule} />
       <View style={styles.trainerRow}>
         <AppAvatar
-          label={`Ảnh huấn luyện viên ${trainer.fullName}`}
+          label={`Image ${trainer.fullName}`}
           size={64}
           source={trainer.avatar}
         />

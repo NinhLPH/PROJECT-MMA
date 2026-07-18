@@ -31,9 +31,6 @@ export default function ProfileScreen() {
         FLEXFIT MEMBER
       </Text>
       <Text style={styles.title}>TÀI KHOẢN</Text>
-      <Text style={styles.subtitle}>
-        Thông tin được đồng bộ từ phiên đăng nhập hiện tại.
-      </Text>
 
       <View style={styles.profileCard}>
         <View style={styles.identity}>

@@ -16,7 +16,7 @@ export function TrainerProfileHero({ trainer }: TrainerProfileHeroProps) {
         <View style={styles.redBlock} />
         <View style={styles.avatarFrame}>
           <AppAvatar
-            label={`Ảnh chân dung huấn luyện viên ${trainer.fullName}`}
+            label={`Image ${trainer.fullName}`}
             size={112}
             source={trainer.avatar}
           />
