@@ -1,65 +1,58 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
-
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
+export const COLORS = {
+  background: "#0B0B0D",
+  surface: "#17171B",
+  surfaceElevated: "#222228",
+  border: "#35353D",
+  textPrimary: "#FAFAFA",
+  textSecondary: "#B7B7C2",
+  textMuted: "#7E7E8B",
+  primary: "#E11D48",
+  primaryPressed: "#BE123C",
+  primarySoft: "#4A1222",
+  danger: "#F87171",
+  dangerSoft: "#4A191E",
+  success: "#4ADE80",
+  successSoft: "#123523",
+  warning: "#FBBF24",
+  warningSoft: "#4A3510",
+  info: "#60A5FA",
+  infoSoft: "#172A4A",
+  white: "#FFFFFF",
+  black: "#000000",
+  overlay: "rgba(0, 0, 0, 0.68)",
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const SPACING = {
+  xxs: 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  xxl: 32,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const RADIUS = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  pill: 999,
+} as const;
+
+export const FONT_FAMILIES = {
+  regular: "Montserrat_400Regular",
+  medium: "Montserrat_500Medium",
+  semibold: "Montserrat_600SemiBold",
+  bold: "Montserrat_700Bold",
+  extraBold: "Montserrat_800ExtraBold",
+} as const;
+
+export const SHADOWS = {
+  card: {
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+  },
+} as const;
