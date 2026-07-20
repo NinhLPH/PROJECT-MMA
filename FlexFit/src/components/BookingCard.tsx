@@ -141,8 +141,9 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
   },
   header: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: SPACING.sm,
     justifyContent: "space-between",
   },
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   trainerKicker: {
     color: COLORS.primary,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 8,
+    fontSize: 10,
     letterSpacing: 1,
   },
   trainerText: {
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
   scheduleLabel: {
     color: COLORS.textMuted,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 8,
+    fontSize: 10,
     letterSpacing: 1,
   },
   scheduleValue: {

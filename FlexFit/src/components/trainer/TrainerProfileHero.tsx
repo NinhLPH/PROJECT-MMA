@@ -7,22 +7,23 @@ import { formatVnd } from "@/utils/formatters";
 
 type TrainerProfileHeroProps = {
   trainer: Trainer;
+  compact?: boolean;
 };
 
-export function TrainerProfileHero({ trainer }: TrainerProfileHeroProps) {
+export function TrainerProfileHero({ trainer, compact = false }: TrainerProfileHeroProps) {
   return (
     <View style={styles.wrapper}>
-      <View style={styles.hero}>
+      <View style={[styles.hero, compact && styles.heroCompact]}>
         <View style={styles.redBlock} />
         <View style={styles.avatarFrame}>
           <AppAvatar
             label={`Image ${trainer.fullName}`}
-            size={112}
+            size={compact ? 96 : 112}
             source={trainer.avatar}
           />
         </View>
 
-        <View style={styles.identity}>
+        <View style={[styles.identity, compact && styles.identityCompact]}>
           <Text style={styles.kicker}>COACH PROFILE</Text>
           <Text style={styles.name}>{trainer.fullName}</Text>
           <View style={styles.specialtyPill}>
@@ -75,6 +76,11 @@ const styles = StyleSheet.create({
     minHeight: 168,
     padding: SPACING.lg,
   },
+  heroCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    padding: SPACING.md,
+  },
   redBlock: {
     backgroundColor: COLORS.primarySoft,
     bottom: 0,
@@ -92,6 +98,10 @@ const styles = StyleSheet.create({
   identity: {
     flex: 1,
     minWidth: 160,
+  },
+  identityCompact: {
+    minWidth: 0,
+    width: "100%",
   },
   kicker: {
     color: COLORS.primary,

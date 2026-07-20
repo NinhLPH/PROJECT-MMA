@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from "react-native";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 
@@ -24,7 +24,7 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: { minHeight: 44, paddingHorizontal: SPACING.md },
+  sm: { minHeight: 48, paddingHorizontal: SPACING.md },
   md: { minHeight: 48, paddingHorizontal: SPACING.lg },
   lg: { minHeight: 54, paddingHorizontal: SPACING.xl },
 } as const;
@@ -44,6 +44,7 @@ export function AppButton({
 
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.18)" }}
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
       accessibilityState={{ busy: loading, disabled: isDisabled }}
@@ -55,7 +56,7 @@ export function AppButton({
         colors,
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
-        pressed && !isDisabled && styles.pressed,
+        pressed && !isDisabled && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       {loading ? (
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "center",
+    overflow: "hidden",
   },
   disabled: {
     opacity: 0.45,
@@ -85,6 +87,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.bold,
     fontSize: 14,
     letterSpacing: 0.2,
+    lineHeight: 20,
+    textAlign: "center",
   },
   pressed: {
     opacity: 0.82,

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
@@ -8,13 +8,15 @@ type TimeSlotCardProps = {
   onPress: (schedule: Schedule) => void;
   schedule: Schedule;
   selected?: boolean;
+  fullWidth?: boolean;
 };
 
-export function TimeSlotCard({ onPress, schedule, selected = false }: TimeSlotCardProps) {
+export function TimeSlotCard({ onPress, schedule, selected = false, fullWidth = false }: TimeSlotCardProps) {
   const disabled = schedule.isBooked;
 
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.16)" }}
       accessibilityHint={disabled ? "Ca tập này đã có người đặt" : "Chọn ca tập này"}
       accessibilityLabel={`Ca tập ${schedule.timeSlot}`}
       accessibilityRole="button"
@@ -23,9 +25,10 @@ export function TimeSlotCard({ onPress, schedule, selected = false }: TimeSlotCa
       onPress={() => onPress(schedule)}
       style={({ pressed }) => [
         styles.card,
+        fullWidth && styles.fullWidth,
         selected && styles.selectedCard,
         disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        pressed && !disabled && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       <SymbolView
@@ -60,8 +63,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: SPACING.xs,
     minHeight: 64,
+    overflow: "hidden",
     paddingHorizontal: SPACING.sm,
     width: "48.5%",
+  },
+  fullWidth: {
+    width: "100%",
   },
   selectedCard: {
     backgroundColor: COLORS.primary,
@@ -85,7 +92,7 @@ const styles = StyleSheet.create({
   status: {
     color: COLORS.success,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 8,
+    fontSize: 12,
     letterSpacing: 0.8,
     marginTop: SPACING.xxs,
   },

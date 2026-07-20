@@ -15,6 +15,7 @@ import { ApiError } from "@/api/errors";
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 import { ROUTES, ROUTE_BUILDERS } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { BookingRecord } from "@/models/booking";
 import type { Trainer } from "@/models/trainer";
 import { bookingService, trainerService } from "@/services";
@@ -115,6 +116,7 @@ export default function PaymentScreen() {
   }>();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { contentPadding, isCompact } = useResponsiveLayout();
   const trainerId = getSingleParam(params.trainerId);
   const date = getSingleParam(params.date);
   const timeSlot = getSingleParam(params.timeSlot);
@@ -214,9 +216,12 @@ export default function PaymentScreen() {
   return (
     <View style={styles.root}>
       <Stack.Screen options={{ title: "Xác nhận booking" }} />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingHorizontal: contentPadding }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.contentWidth}>
-          <View style={styles.hero}>
+          <View style={[styles.hero, isCompact && styles.heroCompact]}>
             <View style={styles.progressRow}>
               <Text style={styles.progress}>BƯỚC 3 / 3</Text>
               <View style={styles.mockBadge}>
@@ -263,9 +268,12 @@ export default function PaymentScreen() {
       </ScrollView>
 
       <SafeAreaView edges={["bottom"]} style={styles.footerSafeArea}>
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingHorizontal: contentPadding }]}>
           {submitError ? (
-            <View accessibilityRole="alert" style={styles.errorBanner}>
+            <View
+              accessibilityRole="alert"
+              style={[styles.errorBanner, isCompact && styles.errorBannerCompact]}
+            >
               <SymbolView
                 name={{ android: "error", ios: "exclamationmark.triangle", web: "error" }}
                 size={20}
@@ -295,7 +303,7 @@ export default function PaymentScreen() {
               </Pressable>
             </View>
           ) : null}
-          <View style={styles.footerTotal}>
+          <View style={[styles.footerTotal, isCompact && styles.footerTotalCompact]}>
             <Text style={styles.footerTotalLabel}>THANH TOÁN DỰ KIẾN</Text>
             <Text style={styles.footerTotalValue}>{formatVnd(estimatedTotal)}</Text>
           </View>
@@ -340,7 +348,11 @@ function PaymentState({ actionLabel, description, onAction, title }: PaymentStat
   return (
     <View style={styles.root}>
       <Stack.Screen options={{ title: "Xác nhận booking" }} />
-      <View accessibilityRole="alert" style={styles.fullState}>
+      <SafeAreaView
+        accessibilityRole="alert"
+        edges={["bottom", "left", "right"]}
+        style={styles.fullState}
+      >
         <View style={styles.stateIcon}>
           <SymbolView
             name={{ android: "receipt_long", ios: "doc.text.magnifyingglass", web: "receipt_long" }}
@@ -351,7 +363,7 @@ function PaymentState({ actionLabel, description, onAction, title }: PaymentStat
         <Text style={styles.stateTitle}>{title}</Text>
         <Text style={styles.stateDescription}>{description}</Text>
         <AppButton label={actionLabel} onPress={onAction} />
-      </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -392,6 +404,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
     padding: SPACING.lg,
+  },
+  heroCompact: {
+    padding: SPACING.md,
   },
   progressRow: {
     alignItems: "center",
@@ -438,8 +453,8 @@ const styles = StyleSheet.create({
   heroDescription: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 12,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 21,
     marginTop: SPACING.sm,
   },
   sectionLabel: {
@@ -502,10 +517,15 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     justifyContent: "space-between",
   },
+  footerTotalCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    gap: SPACING.xxs,
+  },
   footerTotalLabel: {
     color: COLORS.textMuted,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 12,
     letterSpacing: 1,
   },
   footerTotalValue: {
@@ -523,17 +543,21 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     padding: SPACING.sm,
   },
+  errorBannerCompact: {
+    alignItems: "stretch",
+    flexDirection: "column",
+  },
   errorText: {
     color: COLORS.textPrimary,
     flex: 1,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 18,
   },
   errorAction: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: SPACING.xs,
   },
   errorActionPressed: {
@@ -542,7 +566,7 @@ const styles = StyleSheet.create({
   errorActionText: {
     color: COLORS.danger,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 0.7,
   },
   fullState: {

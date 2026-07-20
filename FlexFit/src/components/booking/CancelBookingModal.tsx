@@ -1,8 +1,10 @@
-import { Modal, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { COLORS, FONT_FAMILIES, RADIUS, SHADOWS, SPACING } from "@/constants/theme";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { BookingWithTrainer } from "@/models/booking";
 import { formatDateVi } from "@/utils/formatters";
 
@@ -21,9 +23,13 @@ export function CancelBookingModal({
   onClose,
   onConfirm,
 }: CancelBookingModalProps) {
+  const { contentPadding, height } = useResponsiveLayout();
+
   return (
     <Modal
-      animationType="none"
+      animationType="fade"
+      hardwareAccelerated
+      navigationBarTranslucent
       onRequestClose={() => {
         if (!loading) onClose();
       }}
@@ -31,33 +37,44 @@ export function CancelBookingModal({
       transparent
       visible={booking !== null}
     >
-      <View style={styles.scrim}>
-        <View accessibilityViewIsModal style={styles.dialog}>
-          <View style={styles.iconFrame}>
-            <SymbolView
-              name={{ android: "event_busy", ios: "calendar.badge.minus", web: "event_busy" }}
-              size={30}
-              tintColor={COLORS.danger}
-            />
-          </View>
-          <Text accessibilityRole="header" style={styles.title}>XÁC NHẬN HỦY LỊCH?</Text>
-          <Text style={styles.description}>
-            Ca tập sẽ được mở lại cho học viên khác. Thao tác này không thể hoàn tác.
-          </Text>
-
-          {booking ? (
-            <View style={styles.bookingSummary}>
-              <Text style={styles.trainerName}>{booking.trainer.fullName}</Text>
-              <Text style={styles.schedule}>{formatDateVi(booking.date)}</Text>
-              <Text style={styles.schedule}>{booking.timeSlot}</Text>
+      <SafeAreaView
+        edges={["top", "bottom", "left", "right"]}
+        style={[styles.scrim, { padding: contentPadding }]}
+      >
+        <View
+          accessibilityViewIsModal
+          style={[styles.dialog, { maxHeight: Math.max(240, height - 32) }]}
+        >
+          <ScrollView
+            contentContainerStyle={[styles.dialogContent, { padding: contentPadding }]}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.iconFrame}>
+              <SymbolView
+                name={{ android: "event_busy", ios: "calendar.badge.minus", web: "event_busy" }}
+                size={30}
+                tintColor={COLORS.danger}
+              />
             </View>
-          ) : null}
+            <Text accessibilityRole="header" style={styles.title}>XÁC NHẬN HỦY LỊCH?</Text>
+            <Text style={styles.description}>
+              Ca tập sẽ được mở lại cho học viên khác. Thao tác này không thể hoàn tác.
+            </Text>
 
-          {error ? (
-            <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
-          ) : null}
+            {booking ? (
+              <View style={styles.bookingSummary}>
+                <Text style={styles.trainerName}>{booking.trainer.fullName}</Text>
+                <Text style={styles.schedule}>{formatDateVi(booking.date)}</Text>
+                <Text style={styles.schedule}>{booking.timeSlot}</Text>
+              </View>
+            ) : null}
 
-          <View style={styles.actions}>
+            {error ? (
+              <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+            ) : null}
+          </ScrollView>
+
+          <View style={[styles.actions, { padding: contentPadding, paddingTop: SPACING.sm }]}>
             <AppButton
               disabled={loading}
               fullWidth
@@ -74,7 +91,7 @@ export function CancelBookingModal({
             />
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -85,7 +102,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.overlay,
     flex: 1,
     justifyContent: "center",
-    padding: SPACING.lg,
   },
   dialog: {
     ...SHADOWS.card,
@@ -94,8 +110,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     maxWidth: 480,
-    padding: SPACING.xl,
+    overflow: "hidden",
     width: "100%",
+  },
+  dialogContent: {
+    flexGrow: 1,
   },
   iconFrame: {
     alignItems: "center",
@@ -117,8 +136,8 @@ const styles = StyleSheet.create({
   description: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 12,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 21,
     marginTop: SPACING.xs,
     textAlign: "center",
   },
@@ -139,19 +158,21 @@ const styles = StyleSheet.create({
   schedule: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 12,
+    lineHeight: 18,
   },
   error: {
     color: COLORS.danger,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 12,
+    lineHeight: 18,
     marginTop: SPACING.md,
     textAlign: "center",
   },
   actions: {
+    backgroundColor: COLORS.surface,
+    borderTopColor: COLORS.border,
+    borderTopWidth: 1,
     gap: SPACING.xs,
-    marginTop: SPACING.lg,
   },
 });
