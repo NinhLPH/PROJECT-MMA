@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Keyboard,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -20,6 +22,7 @@ import { SelectableChip } from "@/components/ui/SelectableChip";
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 import { ROUTE_BUILDERS } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { Trainer } from "@/models/trainer";
 import { trainerService } from "@/services";
 
@@ -55,6 +58,7 @@ function getTrainerErrorMessage(error: unknown): string {
 export default function HomeScreen() {
   const router = useRouter();
   const { session } = useAuth();
+  const { contentPadding, isCompact } = useResponsiveLayout();
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [query, setQuery] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<(typeof SPECIALTY_FILTERS)[number]>("Tất cả");
@@ -122,7 +126,7 @@ export default function HomeScreen() {
         <AppAvatar label={session?.user.fullName ?? "Tài khoản FlexFit"} size={48} />
       </View>
 
-      <View style={styles.hero}>
+      <View style={[styles.hero, isCompact && styles.heroCompact]}>
         <View style={styles.heroMarker} />
         <Text style={styles.heroKicker}>FIND YOUR COACH</Text>
         <Text style={styles.heroTitle}>CHỌN ĐÚNG PT.{"\n"}<Text style={styles.heroTitleAccent}>TẬP ĐÚNG MỤC TIÊU.</Text></Text>
@@ -142,6 +146,7 @@ export default function HomeScreen() {
           />
         }
         onChangeText={setQuery}
+        onSubmitEditing={Keyboard.dismiss}
         placeholder="Nhập tên PT..."
         returnKeyType="search"
         rightAccessory={query ? (
@@ -159,6 +164,7 @@ export default function HomeScreen() {
             />
           </Pressable>
         ) : undefined}
+        submitBehavior="blurAndSubmit"
         value={query}
       />
 
@@ -206,10 +212,13 @@ export default function HomeScreen() {
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
         <FlatList
           accessibilityLabel="Đang tải danh sách huấn luyện viên"
-          contentContainerStyle={styles.listContent}
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentContainerStyle={[styles.listContent, { paddingHorizontal: contentPadding }]}
           data={["one", "two", "three"]}
           keyExtractor={(item) => item}
           ListHeaderComponent={listHeader}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          keyboardShouldPersistTaps="handled"
           renderItem={() => <TrainerCardSkeleton />}
           ItemSeparatorComponent={ListSeparator}
           showsVerticalScrollIndicator={false}
@@ -221,10 +230,12 @@ export default function HomeScreen() {
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <FlatList
-        contentContainerStyle={styles.listContent}
+        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+        contentContainerStyle={[styles.listContent, { paddingHorizontal: contentPadding }]}
         data={filteredTrainers}
+        initialNumToRender={6}
         ItemSeparatorComponent={ListSeparator}
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
         keyboardShouldPersistTaps="handled"
         keyExtractor={(trainer) => trainer.id}
         ListEmptyComponent={
@@ -236,6 +247,7 @@ export default function HomeScreen() {
         }
         ListFooterComponent={<View style={styles.listFooter} />}
         ListHeaderComponent={listHeader}
+        maxToRenderPerBatch={6}
         refreshControl={
           <RefreshControl
             colors={[COLORS.primary]}
@@ -247,6 +259,7 @@ export default function HomeScreen() {
         }
         renderItem={renderTrainer}
         showsVerticalScrollIndicator={false}
+        windowSize={7}
       />
     </SafeAreaView>
   );
@@ -313,19 +326,20 @@ const styles = StyleSheet.create({
   listContent: { alignSelf: "center", maxWidth: 720, paddingHorizontal: SPACING.md, width: "100%" },
   listFooter: { height: SPACING.xxl },
   separator: { height: SPACING.sm },
-  topBar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingTop: SPACING.sm },
+  topBar: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm, justifyContent: "space-between", paddingTop: SPACING.sm },
   brand: { color: COLORS.textPrimary, fontFamily: FONT_FAMILIES.extraBold, fontSize: 22, fontStyle: "italic", letterSpacing: -1 },
   brandAccent: { color: COLORS.primary },
   greeting: { color: COLORS.textSecondary, fontFamily: FONT_FAMILIES.medium, fontSize: 12, marginTop: SPACING.xxs },
   hero: { backgroundColor: COLORS.surface, borderColor: COLORS.border, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.xl, marginTop: SPACING.xl, overflow: "hidden", padding: SPACING.lg },
+  heroCompact: { padding: SPACING.md },
   heroMarker: { backgroundColor: COLORS.primary, height: 4, left: SPACING.lg, position: "absolute", top: 0, width: 56 },
   heroKicker: { color: COLORS.primary, fontFamily: FONT_FAMILIES.bold, fontSize: 10, letterSpacing: 2.1, marginBottom: SPACING.sm },
   heroTitle: { color: COLORS.textPrimary, fontFamily: FONT_FAMILIES.extraBold, fontSize: 27, fontStyle: "italic", letterSpacing: -1.2, lineHeight: 31 },
   heroTitleAccent: { color: COLORS.primary },
-  heroBody: { color: COLORS.textSecondary, fontFamily: FONT_FAMILIES.medium, fontSize: 12, lineHeight: 19, marginTop: SPACING.sm, maxWidth: 440 },
-  filterLabel: { color: COLORS.textSecondary, fontFamily: FONT_FAMILIES.bold, fontSize: 11, letterSpacing: 1.2, marginBottom: SPACING.sm, marginTop: SPACING.lg },
+  heroBody: { color: COLORS.textSecondary, fontFamily: FONT_FAMILIES.medium, fontSize: 14, lineHeight: 21, marginTop: SPACING.sm, maxWidth: 440 },
+  filterLabel: { color: COLORS.textSecondary, fontFamily: FONT_FAMILIES.bold, fontSize: 12, letterSpacing: 1.2, marginBottom: SPACING.sm, marginTop: SPACING.lg },
   filters: { gap: SPACING.xs, paddingRight: SPACING.md },
-  sectionHeading: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between", marginBottom: SPACING.md, marginTop: SPACING.xxl },
+  sectionHeading: { alignItems: "flex-end", flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm, justifyContent: "space-between", marginBottom: SPACING.md, marginTop: SPACING.xxl },
   sectionEyebrow: { color: COLORS.primary, fontFamily: FONT_FAMILIES.bold, fontSize: 10, letterSpacing: 1.4 },
   sectionTitle: { color: COLORS.textPrimary, fontFamily: FONT_FAMILIES.extraBold, fontSize: 19, fontStyle: "italic", letterSpacing: -0.6, marginTop: SPACING.xxs },
   countBadge: { alignItems: "center", backgroundColor: COLORS.primarySoft, borderColor: COLORS.primary, borderRadius: RADIUS.pill, borderWidth: 1, height: 32, justifyContent: "center", minWidth: 32, paddingHorizontal: SPACING.xs },

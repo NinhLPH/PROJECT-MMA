@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 11,
+    fontSize: 12,
   },
 });

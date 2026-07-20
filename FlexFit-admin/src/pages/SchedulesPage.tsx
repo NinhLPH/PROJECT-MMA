@@ -11,6 +11,28 @@ import {formatDate, trainerIdOf, trainerNameOf} from '../utils/formatters';
 
 const emptySchedule: ScheduleInput = {trainerId: '', date: '', timeSlot: ''};
 
+const defaultStartTime = '08:00';
+const defaultEndTime = '09:00';
+
+function splitTimeSlot(timeSlot: string): [string, string] {
+    const match = /^(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/.exec(timeSlot);
+    return match ? [match[1], match[2]] : [defaultStartTime, defaultEndTime];
+}
+
+function toMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
+function nextMinute(time: string): string {
+    const totalMinutes = Math.min(toMinutes(time) + 1, 23 * 60 + 59);
+    return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
+}
+
+function timeSlot(startTime: string, endTime: string): string {
+    return `${startTime} - ${endTime}`;
+}
+
 export function SchedulesPage() {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [trainers, setTrainers] = useState<Trainer[]>([]);
@@ -42,7 +64,7 @@ export function SchedulesPage() {
     function openCreate() {
         setError(null);
         setEditing(null);
-        setForm(emptySchedule);
+        setForm({...emptySchedule, timeSlot: timeSlot(defaultStartTime, defaultEndTime)});
         setFormOpen(true);
     }
 
@@ -147,23 +169,47 @@ function ScheduleForm({error, form, trainers, saving, onChange, onClose, onSubmi
     onClose: () => void;
     onSubmit: (event: FormEvent) => void
 }) {
-    const update = <K extends keyof ScheduleInput>(key: K, value: ScheduleInput[K]) => onChange({
-        ...form,
-        [key]: value
-    });
-    return <form onSubmit={onSubmit} className="admin-form">{error &&
-        <p className="form-error" role="alert">{error}</p>}<label>Huấn luyện viên<select required value={form.trainerId}
-                                                                                         onChange={(event) => update('trainerId', event.target.value)}>
-        <option value="">Chọn huấn luyện viên</option>
-        {trainers.map((trainer) => <option key={trainer._id}
-                                           value={trainer._id}>{trainer.fullName} · {trainer.specialty}</option>)}
-    </select></label>
-        <div className="form-grid"><label>Ngày tập<input required type="date" value={form.date}
-                                                         onChange={(event) => update('date', event.target.value)}/></label><label>Khung
-            giờ<input required pattern="^([01]\\d|2[0-3]):[0-5]\\d\\s*-\\s*([01]\\d|2[0-3]):[0-5]\\d$"
-                      value={form.timeSlot} onChange={(event) => update('timeSlot', event.target.value)}
-                      placeholder="08:00 - 09:30"/></label></div>
-        <p className="input-hint">Dùng định dạng 24 giờ, ví dụ: 08:00 - 09:30.</p>
+    const [startTime, endTime] = splitTimeSlot(form.timeSlot);
+    const [timeError, setTimeError] = useState<string | null>(null);
+    const update = <K extends keyof ScheduleInput>(key: K, value: ScheduleInput[K]) => onChange({...form, [key]: value});
+    const updateTimeSlot = (nextStartTime: string, nextEndTime: string) => update('timeSlot', timeSlot(nextStartTime, nextEndTime));
+
+    function changeStartTime(nextStartTime: string) {
+        const nextEndTime = toMinutes(endTime) > toMinutes(nextStartTime) ? endTime : nextMinute(nextStartTime);
+        setTimeError(null);
+        updateTimeSlot(nextStartTime, nextEndTime);
+    }
+
+    function changeEndTime(nextEndTime: string) {
+        setTimeError(null);
+        updateTimeSlot(startTime, nextEndTime);
+    }
+
+    function submit(event: FormEvent) {
+        if (toMinutes(endTime) <= toMinutes(startTime)) {
+            event.preventDefault();
+            setTimeError('Giờ kết thúc phải sau giờ bắt đầu.');
+            return;
+        }
+        setTimeError(null);
+        onSubmit(event);
+    }
+
+    return <form onSubmit={submit} className="admin-form">
+        {(error || timeError) && <p className="form-error" role="alert">{timeError || error}</p>}
+        <label>Huấn luyện viên<select required value={form.trainerId} onChange={(event) => update('trainerId', event.target.value)}>
+            <option value="">Chọn huấn luyện viên</option>
+            {trainers.map((trainer) => <option key={trainer._id} value={trainer._id}>{trainer.fullName} · {trainer.specialty}</option>)}
+        </select></label>
+        <div className="form-grid">
+            <label>Ngày tập<input required type="date" value={form.date} onChange={(event) => update('date', event.target.value)}/></label>
+            <div aria-label="Chọn khung giờ" className="time-picker-group">
+                <label>Giờ bắt đầu<input required type="time" min="00:00" max="23:58" step="60" value={startTime} onChange={(event) => changeStartTime(event.target.value)}/></label>
+                <span aria-hidden>→</span>
+                <label>Giờ kết thúc<input required type="time" min={nextMinute(startTime)} max="23:59" step="60" value={endTime} onChange={(event) => changeEndTime(event.target.value)}/></label>
+            </div>
+        </div>
+        <p className="input-hint">Chọn giờ bắt đầu và kết thúc.</p>
         <div className="form-actions">
             <button type="button" className="button button-ghost" disabled={saving} onClick={onClose}>Hủy</button>
             <button className="button button-primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Lưu lịch tập'}</button>

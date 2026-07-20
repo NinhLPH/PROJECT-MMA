@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text } from "react-native";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 
@@ -17,6 +17,7 @@ export function SelectableChip({
 }: SelectableChipProps) {
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.14)" }}
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{ disabled, selected }}
@@ -26,7 +27,7 @@ export function SelectableChip({
         styles.chip,
         selected && styles.selected,
         disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        pressed && !disabled && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       <Text style={[styles.label, selected && styles.selectedLabel]}>{label}</Text>
@@ -42,7 +43,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 48,
+    overflow: "hidden",
     paddingHorizontal: SPACING.md,
   },
   disabled: {

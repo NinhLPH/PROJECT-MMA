@@ -52,11 +52,14 @@ export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
             {...inputProps}
             ref={ref}
             accessibilityLabel={accessibilityLabel ?? label}
+            cursorColor={COLORS.primary}
             editable={editable}
             onChangeText={onChangeText}
             placeholderTextColor={COLORS.textMuted}
             selectionColor={COLORS.primary}
             style={[styles.input, inputStyle]}
+            textAlignVertical="center"
+            underlineColorAndroid="transparent"
             value={value}
           />
           {rightAccessory ? (
@@ -64,7 +67,7 @@ export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
           ) : null}
         </View>
         {error ? (
-          <Text accessibilityRole="alert" style={styles.error}>
+          <Text accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.error}>
             {error}
           </Text>
         ) : null}
@@ -87,6 +90,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     minHeight: 48,
     paddingHorizontal: SPACING.md,
+    paddingVertical: 0,
   },
   inputDisabled: {
     opacity: 0.5,

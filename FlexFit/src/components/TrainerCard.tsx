@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { AppAvatar } from "@/components/ui/AppAvatar";
@@ -15,23 +15,27 @@ type TrainerCardProps = {
 export const TrainerCard = memo(function TrainerCard({ trainer, onPress }: TrainerCardProps) {
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.14)" }}
       accessibilityHint={onPress ? "Mở thông tin và lịch tập của huấn luyện viên" : undefined}
       accessibilityLabel={`${trainer.fullName}, chuyên môn ${trainer.specialty}, ${formatVnd(trainer.pricePerHour)} một giờ`}
       accessibilityRole={onPress ? "button" : undefined}
       disabled={!onPress}
       onPress={() => onPress?.(trainer)}
-      style={({ pressed }) => [styles.card, pressed && onPress && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && onPress && Platform.OS !== "android" && styles.pressed,
+      ]}
     >
       <View style={styles.accentRail} />
       <AppAvatar label={`Image ${trainer.fullName}`} source={trainer.avatar} size={72} />
       <View style={styles.content}>
         <Text style={styles.eyebrow}>HUẤN LUYỆN VIÊN</Text>
-        <Text numberOfLines={1} style={styles.name}>
+        <Text style={styles.name}>
           {trainer.fullName}
         </Text>
         <View style={styles.metaRow}>
           <View style={styles.specialtyPill}>
-            <Text numberOfLines={1} style={styles.specialty}>
+            <Text style={styles.specialty}>
               {trainer.specialty}
             </Text>
           </View>
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
   metaRow: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: SPACING.xs,
     marginTop: SPACING.xs,
   },
@@ -131,7 +136,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontFamily: FONT_FAMILIES.semibold,
     fontSize: 10,
-    maxWidth: 130,
+    flexShrink: 1,
   },
   specialtyPill: {
     backgroundColor: COLORS.surfaceElevated,

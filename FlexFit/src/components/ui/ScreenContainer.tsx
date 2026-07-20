@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
-import type { StyleProp, ViewStyle } from "react-native";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { forwardRef, type ReactNode } from "react";
+import type { ScrollViewProps, StyleProp, ViewStyle } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 import { COLORS, SPACING } from "@/constants/theme";
@@ -10,30 +10,41 @@ type ScreenContainerProps = {
   scroll?: boolean;
   contentContainerStyle?: StyleProp<ViewStyle>;
   safeAreaEdges?: Edge[];
+  scrollViewProps?: Omit<ScrollViewProps, "children" | "contentContainerStyle">;
 };
 
-export function ScreenContainer({
-  children,
-  scroll = true,
-  contentContainerStyle,
-  safeAreaEdges = ["left", "right", "bottom"],
-}: ScreenContainerProps) {
-  return (
-    <SafeAreaView edges={safeAreaEdges} style={styles.safeArea}>
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={[styles.content, contentContainerStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.content, contentContainerStyle]}>{children}</View>
-      )}
-    </SafeAreaView>
-  );
-}
+export const ScreenContainer = forwardRef<ScrollView, ScreenContainerProps>(
+  function ScreenContainer(
+    {
+      children,
+      scroll = true,
+      contentContainerStyle,
+      safeAreaEdges = ["left", "right", "bottom"],
+      scrollViewProps,
+    },
+    ref,
+  ) {
+    return (
+      <SafeAreaView edges={safeAreaEdges} style={styles.safeArea}>
+        {scroll ? (
+          <ScrollView
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            {...scrollViewProps}
+            ref={ref}
+            contentContainerStyle={[styles.content, contentContainerStyle]}
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={[styles.content, contentContainerStyle]}>{children}</View>
+        )}
+      </SafeAreaView>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   safeArea: {
