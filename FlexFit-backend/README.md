@@ -34,7 +34,7 @@ Admin endpoints are under `/api/admin` and require a token for a user whose role
 
 ## API groups
 
-- Public: `GET /api/trainers`, `GET /api/trainers/:id/schedules?date=YYYY-MM-DD`
+- Public: `GET /api/trainers`, `GET /api/trainers/:id/schedules?date=YYYY-MM-DD`. The schedules endpoint returns only available slots by default; add `&includeBooked=true` to return all slots, including booked ones.
 - Customer bookings: `POST /api/bookings`, `GET /api/bookings/user/:userId`, `PUT /api/bookings/:id/cancel`
 - Admin trainer CRUD: `/api/admin/trainers`
 - Admin schedule CRUD: `/api/admin/schedules`

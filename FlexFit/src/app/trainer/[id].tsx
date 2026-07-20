@@ -118,7 +118,7 @@ export default function TrainerDetailScreen() {
     setSelectedScheduleId(null);
 
     try {
-      const nextSchedules = await scheduleService.getAvailable(trainerId, selectedDate);
+      const nextSchedules = await scheduleService.getForDate(trainerId, selectedDate);
       if (requestId === scheduleRequestId.current) {
         setSchedules(nextSchedules);
       }
@@ -145,10 +145,14 @@ export default function TrainerDetailScreen() {
     };
   }, [loadSchedules]);
 
-  const selectedSchedule = schedules.find((schedule) => schedule.id === selectedScheduleId) ?? null;
+  const availableScheduleCount = schedules.filter((schedule) => !schedule.isBooked).length;
+  const selectedSchedule = schedules.find(
+    (schedule) => schedule.id === selectedScheduleId && !schedule.isBooked,
+  ) ?? null;
   const selectedDateOption = dateOptions.find((option) => option.apiDate === selectedDate) ?? dateOptions[0];
 
   const selectSchedule = useCallback((schedule: Schedule) => {
+    if (schedule.isBooked) return;
     setSelectedScheduleId((currentId) => currentId === schedule.id ? null : schedule.id);
   }, []);
 
@@ -225,7 +229,9 @@ export default function TrainerDetailScreen() {
             description={
               isScheduleLoading
                 ? "Đang kiểm tra lịch trống"
-                : `${schedules.length} ca có thể đặt`
+                : availableScheduleCount === 0
+                  ? "Không còn ca trống cho ngày này"
+                  : `${availableScheduleCount} ca có thể đặt`
             }
             step="02"
             title="CHỌN CA TẬP"
@@ -251,16 +257,23 @@ export default function TrainerDetailScreen() {
               title="CHƯA CÓ CA TRỐNG"
             />
           ) : (
-            <View style={styles.slotGrid}>
-              {schedules.map((schedule) => (
-                <TimeSlotCard
-                  key={schedule.id}
-                  onPress={selectSchedule}
-                  schedule={schedule}
-                  selected={schedule.id === selectedScheduleId}
-                />
-              ))}
-            </View>
+            <>
+              <View style={styles.slotGrid}>
+                {schedules.map((schedule) => (
+                  <TimeSlotCard
+                    key={schedule.id}
+                    onPress={selectSchedule}
+                    schedule={schedule}
+                    selected={schedule.id === selectedScheduleId}
+                  />
+                ))}
+              </View>
+              {availableScheduleCount === 0 ? (
+                <Text accessibilityRole="alert" style={styles.allBookedNotice}>
+                  Tất cả ca tập trong ngày này đã kín. Hãy chọn một ngày khác để đặt lịch.
+                </Text>
+              ) : null}
+            </>
           )}
         </View>
       </ScrollView>
@@ -421,6 +434,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: SPACING.xs,
+  },
+  allBookedNotice: {
+    color: COLORS.textSecondary,
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: SPACING.sm,
   },
   slotLoading: {
     alignItems: "center",
