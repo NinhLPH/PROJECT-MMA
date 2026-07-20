@@ -29,7 +29,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   },
   {
     id: "vnpay",
-    description: "Quét mã thanh toán mô phỏng",
+    description: "Quét mã thanh toán",
     icon: "qr",
     label: "Cổng VNPAY",
   },
@@ -209,7 +209,7 @@ export default function PaymentScreen() {
     );
   }
 
-  const selectedMethodLabel = selectedMethod?.label ?? "Thanh toán mô phỏng";
+  const selectedMethodLabel = selectedMethod?.label ?? "Thanh toán";
 
   return (
     <View style={styles.root}>
@@ -244,7 +244,7 @@ export default function PaymentScreen() {
             trainer={trainer}
           />
 
-          <SectionLabel label="02" title="PHƯƠNG THỨC MÔ PHỎNG" />
+          <SectionLabel label="02" title="PHƯƠNG THỨC" />
           <View accessibilityRole="radiogroup" style={styles.methodList}>
             {PAYMENT_METHODS.map((method) => (
               <PaymentMethodCard
@@ -258,14 +258,6 @@ export default function PaymentScreen() {
                 selected={selectedMethod?.id === method.id}
               />
             ))}
-          </View>
-
-          <View style={styles.notice}>
-            <SymbolView
-              name={{ android: "info", ios: "info.circle", web: "info" }}
-              size={20}
-              tintColor={COLORS.info}
-            />
           </View>
         </View>
       </ScrollView>

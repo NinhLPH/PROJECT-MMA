@@ -33,7 +33,7 @@ export function BookingSuccessModal({ booking, methodLabel, onContinue }: Bookin
           </View>
           <Text accessibilityRole="header" style={styles.title}>ĐẶT LỊCH THÀNH CÔNG</Text>
           <Text style={styles.description}>
-            Ca tập đã được khóa cho bạn. Thanh toán mô phỏng được ghi nhận hoàn tất.
+            Ca tập đã được khóa cho bạn. Thanh toán được ghi nhận hoàn tất.
           </Text>
 
           {booking ? (

@@ -634,6 +634,19 @@ input:focus, select:focus, textarea:focus {
     margin: -7px 0 0;
 }
 
+.time-picker-group {
+    align-items: end;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.time-picker-group > span {
+    color: #888894;
+    font-weight: 800;
+    padding-bottom: 11px;
+}
+
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -853,6 +866,14 @@ input:focus, select:focus, textarea:focus {
 
     .form-span-2 {
         grid-column: auto;
+    }
+
+    .time-picker-group {
+        grid-template-columns: 1fr;
+    }
+
+    .time-picker-group > span {
+        display: none;
     }
 
     .table-toolbar {
