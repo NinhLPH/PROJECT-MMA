@@ -1,22 +1,21 @@
 import { useState } from "react";
-import type { ImageSourcePropType } from "react-native";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { Image, type ImageProps } from "expo-image";
 
 import { COLORS, FONT_FAMILIES } from "@/constants/theme";
 
 type AppAvatarProps = {
-  source?: ImageSourcePropType | string | null;
+  source?: ImageProps["source"];
   label: string;
   size?: number;
 };
 
 export function AppAvatar({ source, label, size = 48 }: AppAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
-  const imageSource = typeof source === "string" ? { uri: source } : source;
   const initials = label.trim().charAt(0).toLocaleUpperCase() || "?";
   const dimensions = { borderRadius: size / 2, height: size, width: size };
 
-  if (!imageSource || imageFailed) {
+  if (!source || imageFailed) {
     return (
       <View accessibilityLabel={label} style={[styles.fallback, dimensions]}>
         <Text style={[styles.initials, { fontSize: size * 0.38 }]}>{initials}</Text>
@@ -27,9 +26,13 @@ export function AppAvatar({ source, label, size = 48 }: AppAvatarProps) {
   return (
     <Image
       accessibilityLabel={label}
+      cachePolicy="memory-disk"
+      contentFit="cover"
       onError={() => setImageFailed(true)}
-      source={imageSource}
+      recyclingKey={typeof source === "string" ? source : label}
+      source={source}
       style={[styles.image, dimensions]}
+      transition={160}
     />
   );
 }

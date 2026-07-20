@@ -22,6 +22,7 @@ import { ApiError } from "@/api/errors";
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { BookingWithTrainer } from "@/models/booking";
 import { bookingService } from "@/services";
 
@@ -72,6 +73,7 @@ function getCancelError(error: unknown): string {
 export default function BookingsScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
+  const { contentPadding, isCompact } = useResponsiveLayout();
   const userId = session?.user.id;
   const [bookings, setBookings] = useState<BookingWithTrainer[]>([]);
   const [selectedTab, setSelectedTab] = useState<BookingHistoryTab>("upcoming");
@@ -228,12 +230,12 @@ export default function BookingsScreen() {
         <Text style={styles.heroDescription}>
           Theo dõi từng buổi tập, kiểm soát trạng thái và giữ lộ trình luôn đúng hướng.
         </Text>
-        <View style={styles.metrics}>
-          <Metric value={upcomingBookings.length} label="SẮP TỚI" />
-          <View style={styles.metricDivider} />
-          <Metric value={completedCount} label="HOÀN THÀNH" />
-          <View style={styles.metricDivider} />
-          <Metric value={bookings.length} label="TỔNG LỊCH" />
+        <View style={[styles.metrics, isCompact && styles.metricsCompact]}>
+          <Metric compact={isCompact} value={upcomingBookings.length} label="SẮP TỚI" />
+          <View style={[styles.metricDivider, isCompact && styles.metricDividerCompact]} />
+          <Metric compact={isCompact} value={completedCount} label="HOÀN THÀNH" />
+          <View style={[styles.metricDivider, isCompact && styles.metricDividerCompact]} />
+          <Metric compact={isCompact} value={bookings.length} label="TỔNG LỊCH" />
         </View>
       </View>
 
@@ -277,7 +279,7 @@ export default function BookingsScreen() {
         </View>
       ) : null}
 
-      <View style={styles.listHeading}>
+      <View style={[styles.listHeading, isCompact && styles.listHeadingCompact]}>
         <View>
           <Text style={styles.listEyebrow}>
             {selectedTab === "upcoming" ? "LỘ TRÌNH HIỆN TẠI" : "NHẬT KÝ LUYỆN TẬP"}
@@ -298,7 +300,7 @@ export default function BookingsScreen() {
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
         <FlatList
           accessibilityLabel="Đang tải lịch tập"
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingHorizontal: contentPadding }]}
           data={["one", "two", "three"]}
           ItemSeparatorComponent={ListSeparator}
           keyExtractor={(item) => item}
@@ -313,7 +315,7 @@ export default function BookingsScreen() {
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <FlatList
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingHorizontal: contentPadding }]}
         data={visibleBookings}
         extraData={selectedTab}
         initialNumToRender={6}
@@ -332,6 +334,7 @@ export default function BookingsScreen() {
         }
         ListFooterComponent={<View style={styles.listFooter} />}
         ListHeaderComponent={listHeader}
+        maxToRenderPerBatch={6}
         refreshControl={
           <RefreshControl
             colors={[COLORS.primary]}
@@ -343,6 +346,7 @@ export default function BookingsScreen() {
         }
         renderItem={renderBooking}
         showsVerticalScrollIndicator={false}
+        windowSize={7}
       />
 
       <CancelBookingModal
@@ -356,9 +360,9 @@ export default function BookingsScreen() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({ compact, label, value }: { compact?: boolean; label: string; value: number }) {
   return (
-    <View style={styles.metric}>
+    <View style={[styles.metric, compact && styles.metricCompact]}>
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
@@ -449,6 +453,8 @@ const styles = StyleSheet.create({
   brandRow: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SPACING.sm,
     justifyContent: "space-between",
     paddingTop: SPACING.sm,
   },
@@ -532,8 +538,8 @@ const styles = StyleSheet.create({
   heroDescription: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 21,
     marginTop: SPACING.sm,
     maxWidth: 480,
   },
@@ -547,9 +553,18 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
     paddingVertical: SPACING.sm,
   },
+  metricsCompact: {
+    alignItems: "stretch",
+    flexDirection: "column",
+    paddingVertical: 0,
+  },
   metric: {
     alignItems: "center",
     flex: 1,
+  },
+  metricCompact: {
+    flex: 0,
+    paddingVertical: SPACING.sm,
   },
   metricValue: {
     color: COLORS.textPrimary,
@@ -559,7 +574,7 @@ const styles = StyleSheet.create({
   metricLabel: {
     color: COLORS.textMuted,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 8,
+    fontSize: 11,
     letterSpacing: 0.8,
     marginTop: SPACING.xxs,
   },
@@ -567,6 +582,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
     height: 32,
     width: 1,
+  },
+  metricDividerCompact: {
+    height: 1,
+    width: "100%",
   },
   tabsWrapper: {
     marginTop: SPACING.md,
@@ -578,6 +597,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: SPACING.sm,
     marginTop: SPACING.md,
     padding: SPACING.sm,
@@ -586,8 +606,8 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     flex: 1,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 10,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 18,
   },
   errorBanner: {
     alignItems: "center",
@@ -596,6 +616,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: SPACING.xs,
     marginTop: SPACING.md,
     padding: SPACING.sm,
@@ -604,13 +625,13 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     flex: 1,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 18,
   },
   bannerAction: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: SPACING.xs,
   },
   bannerActionPressed: {
@@ -619,7 +640,7 @@ const styles = StyleSheet.create({
   bannerActionText: {
     color: COLORS.danger,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 0.7,
   },
   listHeading: {
@@ -629,10 +650,15 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     marginTop: SPACING.xxl,
   },
+  listHeadingCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    gap: SPACING.sm,
+  },
   listEyebrow: {
     color: COLORS.primary,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 1.3,
   },
   listTitle: {

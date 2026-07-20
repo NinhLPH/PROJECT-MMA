@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 
@@ -23,6 +23,7 @@ export function BookingDateCard({
 }: BookingDateCardProps) {
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.16)" }}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ selected }}
@@ -30,7 +31,7 @@ export function BookingDateCard({
       style={({ pressed }) => [
         styles.card,
         selected && styles.selectedCard,
-        pressed && styles.pressed,
+        pressed && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       <View style={[styles.topRule, selected && styles.selectedTopRule]} />

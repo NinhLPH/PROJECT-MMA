@@ -13,10 +13,12 @@ import {
   SPACING,
 } from "@/constants/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
+  const { contentPadding, isCompact } = useResponsiveLayout();
 
   if (!session) return null;
 
@@ -26,14 +28,17 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScreenContainer safeAreaEdges={["top", "left", "right", "bottom"]}>
+    <ScreenContainer
+      contentContainerStyle={[styles.content, { padding: contentPadding }]}
+      safeAreaEdges={["top", "left", "right", "bottom"]}
+    >
       <Text accessibilityRole="header" style={styles.eyebrow}>
         FLEXFIT MEMBER
       </Text>
       <Text style={styles.title}>TÀI KHOẢN</Text>
 
       <View style={styles.profileCard}>
-        <View style={styles.identity}>
+        <View style={[styles.identity, isCompact && styles.identityCompact]}>
           <AppAvatar label={session.user.fullName} size={64} />
           <View style={styles.identityText}>
             <Text style={styles.name}>{session.user.fullName}</Text>
@@ -58,6 +63,11 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  content: {
+    alignSelf: "center",
+    maxWidth: 720,
+    width: "100%",
+  },
   divider: {
     backgroundColor: COLORS.border,
     height: 1,
@@ -73,6 +83,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: SPACING.md,
+  },
+  identityCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
   },
   identityText: {
     flex: 1,

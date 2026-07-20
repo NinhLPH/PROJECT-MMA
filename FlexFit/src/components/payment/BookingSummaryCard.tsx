@@ -5,6 +5,7 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { COLORS, FONT_FAMILIES, RADIUS, SHADOWS, SPACING } from "@/constants/theme";
 import type { Trainer } from "@/models/trainer";
 import { formatVnd } from "@/utils/formatters";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 type BookingSummaryCardProps = {
   dateLabel: string;
@@ -21,10 +22,12 @@ export function BookingSummaryCard({
   totalPrice,
   trainer,
 }: BookingSummaryCardProps) {
+  const { isCompact } = useResponsiveLayout();
+
   return (
     <View style={styles.card}>
       <View style={styles.redRule} />
-      <View style={styles.trainerRow}>
+      <View style={[styles.trainerRow, isCompact && styles.trainerRowCompact]}>
         <AppAvatar
           label={`Image ${trainer.fullName}`}
           size={64}
@@ -43,7 +46,7 @@ export function BookingSummaryCard({
       <InfoRow label="Thời lượng" value={durationLabel} />
       <InfoRow label="Đơn giá" value={`${formatVnd(trainer.pricePerHour)} / giờ`} />
 
-      <View style={styles.totalBand}>
+      <View style={[styles.totalBand, isCompact && styles.totalBandCompact]}>
         <View>
           <Text style={styles.totalLabel}>TỔNG CHI PHÍ DỰ KIẾN</Text>
         </View>
@@ -76,13 +79,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: SPACING.md,
   },
+  trainerRowCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+  },
   trainerCopy: {
     flex: 1,
   },
   kicker: {
     color: COLORS.primary,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 1.4,
   },
   trainerName: {
@@ -95,7 +102,7 @@ const styles = StyleSheet.create({
   specialty: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: SPACING.xxs,
   },
   divider: {
@@ -115,6 +122,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: SPACING.md,
     padding: SPACING.md,
+  },
+  totalBandCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
   },
   totalLabel: {
     color: COLORS.textSecondary,

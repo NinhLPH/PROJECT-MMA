@@ -1,8 +1,12 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  findNodeHandle,
+  InputAccessoryView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  type ScrollView,
   StyleSheet,
   Text,
   type TextInput,
@@ -24,6 +28,7 @@ import {
   SPACING,
 } from "@/constants/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 type AuthMode = "login" | "register";
 type FieldName = "email" | "fullName" | "password" | "phoneNumber";
@@ -31,6 +36,7 @@ type FormErrors = Partial<Record<FieldName, string>>;
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 const PHONE_PATTERN = /^\+?[0-9]{9,12}$/;
+const PHONE_ACCESSORY_ID = "flexfit-phone-accessory";
 
 function getApiErrorMessage(error: unknown, mode: AuthMode): string {
   if (!(error instanceof ApiError)) {
@@ -46,7 +52,7 @@ function getApiErrorMessage(error: unknown, mode: AuthMode): string {
   }
 
   if (error.status === null) {
-    return "Không thể kết nối máy chủ FlexFit. Kiểm tra backend hoặc địa chỉ API rồi thử lại.";
+    return "Không thể kết nối máy chủ FlexFit.";
   }
 
   return "Không thể xử lý yêu cầu lúc này. Vui lòng kiểm tra thông tin và thử lại.";
@@ -55,6 +61,7 @@ function getApiErrorMessage(error: unknown, mode: AuthMode): string {
 export default function AuthScreen() {
   const router = useRouter();
   const { isAuthenticated, signIn, signUp } = useAuth();
+  const { contentPadding, isCompact } = useResponsiveLayout();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +76,61 @@ export default function AuthScreen() {
   const phoneRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+  const requestErrorRef = useRef<View>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const focusedInputRef = useRef<TextInput | null>(null);
+  const focusScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scrollNodeIntoView = useCallback((node: TextInput | View | null, extraOffset = 64) => {
+    if (!node || Platform.OS === "web") return;
+    const nodeHandle = findNodeHandle(node);
+    if (nodeHandle === null) return;
+
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(
+        nodeHandle,
+        extraOffset,
+        true,
+      );
+    });
+  }, []);
+
+  const handleInputFocus = useCallback(
+    (node: TextInput | null) => {
+      if (!node) return;
+      focusedInputRef.current = node;
+      scrollNodeIntoView(node);
+
+      if (focusScrollTimerRef.current) {
+        clearTimeout(focusScrollTimerRef.current);
+      }
+
+      focusScrollTimerRef.current = setTimeout(
+        () => scrollNodeIntoView(node),
+        Platform.OS === "android" ? 180 : 80,
+      );
+    },
+    [scrollNodeIntoView],
+  );
+
+  useEffect(() => {
+    const keyboardSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      scrollNodeIntoView(focusedInputRef.current);
+    });
+
+    return () => {
+      keyboardSubscription.remove();
+      if (focusScrollTimerRef.current) {
+        clearTimeout(focusScrollTimerRef.current);
+      }
+    };
+  }, [scrollNodeIntoView]);
+
+  useEffect(() => {
+    if (requestError) {
+      scrollNodeIntoView(requestErrorRef.current, 20);
+    }
+  }, [requestError, scrollNodeIntoView]);
 
   if (isAuthenticated) {
     return <Redirect href={ROUTES.HOME} />;
@@ -132,7 +194,11 @@ export default function AuthScreen() {
             ["password", passwordRef],
           ];
 
-    focusOrder.find(([field]) => nextErrors[field])?.[1].current?.focus();
+    const invalidInput = focusOrder.find(([field]) => nextErrors[field])?.[1].current;
+    if (!invalidInput) return;
+
+    invalidInput.focus();
+    handleInputFocus(invalidInput);
   }
 
   async function handleSubmit() {
@@ -154,6 +220,7 @@ export default function AuthScreen() {
       return;
     }
 
+    Keyboard.dismiss();
     setIsSubmitting(true);
 
     try {
@@ -180,12 +247,28 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : Platform.OS === "android"
+            ? "height"
+            : undefined
+      }
+      enabled={Platform.OS !== "web"}
       style={styles.keyboardView}
     >
       <ScreenContainer
-        contentContainerStyle={styles.container}
+        ref={scrollRef}
+        contentContainerStyle={[
+          styles.container,
+          { paddingHorizontal: contentPadding },
+          isCompact && styles.containerCompact,
+        ]}
         safeAreaEdges={["top", "left", "right", "bottom"]}
+        scrollViewProps={{
+          automaticallyAdjustKeyboardInsets: false,
+          contentInsetAdjustmentBehavior: "automatic",
+        }}
       >
         <View pointerEvents="none" style={styles.backgroundMark}>
           <View style={styles.backgroundSlash} />
@@ -202,7 +285,7 @@ export default function AuthScreen() {
           </View>
         </View>
 
-        <View style={styles.hero}>
+        <View style={[styles.hero, isCompact && styles.heroCompact]}>
           <View style={styles.kickerRow}>
             <View style={styles.kickerLine} />
             <Text style={styles.kicker}>PT BOOKING PLATFORM</Text>
@@ -215,9 +298,10 @@ export default function AuthScreen() {
           </Text>
         </View>
 
-        <View style={styles.formPanel}>
+        <View style={[styles.formPanel, isCompact && styles.formPanelCompact]}>
           <View accessibilityRole="tablist" style={styles.modeSwitcher}>
             <Pressable
+              android_ripple={{ color: "rgba(255, 255, 255, 0.16)" }}
               accessibilityRole="tab"
               accessibilityState={{ selected: mode === "login" }}
               disabled={isSubmitting}
@@ -225,7 +309,7 @@ export default function AuthScreen() {
               style={({ pressed }) => [
                 styles.modeButton,
                 mode === "login" && styles.modeButtonActive,
-                pressed && styles.modeButtonPressed,
+                pressed && Platform.OS !== "android" && styles.modeButtonPressed,
               ]}
             >
               <Text
@@ -238,6 +322,7 @@ export default function AuthScreen() {
               </Text>
             </Pressable>
             <Pressable
+              android_ripple={{ color: "rgba(255, 255, 255, 0.16)" }}
               accessibilityRole="tab"
               accessibilityState={{ selected: mode === "register" }}
               disabled={isSubmitting}
@@ -245,7 +330,7 @@ export default function AuthScreen() {
               style={({ pressed }) => [
                 styles.modeButton,
                 mode === "register" && styles.modeButtonActive,
-                pressed && styles.modeButtonPressed,
+                pressed && Platform.OS !== "android" && styles.modeButtonPressed,
               ]}
             >
               <Text
@@ -271,7 +356,7 @@ export default function AuthScreen() {
           </View>
 
           {requestError ? (
-            <View accessibilityLiveRegion="polite" style={styles.errorBanner}>
+            <View ref={requestErrorRef} accessibilityLiveRegion="polite" style={styles.errorBanner}>
               <SymbolView
                 name={{
                   android: "error",
@@ -302,9 +387,11 @@ export default function AuthScreen() {
                     setFullName(value);
                     clearFieldError("fullName");
                   }}
+                  onFocus={() => handleInputFocus(fullNameRef.current)}
                   onSubmitEditing={() => phoneRef.current?.focus()}
-                  placeholder="Nguyễn Minh Anh"
+                  placeholder="Họ và tên"
                   returnKeyType="next"
+                  submitBehavior="submit"
                   textContentType="name"
                   value={fullName}
                 />
@@ -313,6 +400,7 @@ export default function AuthScreen() {
                   autoComplete="tel"
                   editable={!isSubmitting}
                   error={errors.phoneNumber}
+                  inputAccessoryViewID={Platform.OS === "ios" ? PHONE_ACCESSORY_ID : undefined}
                   keyboardType="phone-pad"
                   label="Số điện thoại"
                   onBlur={() => validateField("phoneNumber")}
@@ -320,9 +408,11 @@ export default function AuthScreen() {
                     setPhoneNumber(value);
                     clearFieldError("phoneNumber");
                   }}
+                  onFocus={() => handleInputFocus(phoneRef.current)}
                   onSubmitEditing={() => emailRef.current?.focus()}
                   placeholder="090 123 4567"
                   returnKeyType="next"
+                  submitBehavior="submit"
                   textContentType="telephoneNumber"
                   value={phoneNumber}
                 />
@@ -343,9 +433,11 @@ export default function AuthScreen() {
                 setEmail(value);
                 clearFieldError("email");
               }}
+              onFocus={() => handleInputFocus(emailRef.current)}
               onSubmitEditing={() => passwordRef.current?.focus()}
               placeholder="ban@flexfit.vn"
               returnKeyType="next"
+              submitBehavior="submit"
               textContentType="emailAddress"
               value={email}
             />
@@ -362,11 +454,13 @@ export default function AuthScreen() {
                 setPassword(value);
                 clearFieldError("password");
               }}
+              onFocus={() => handleInputFocus(passwordRef.current)}
               onSubmitEditing={() => void handleSubmit()}
               placeholder="Tối thiểu 6 ký tự"
               returnKeyType="done"
               rightAccessory={
                 <Pressable
+                  android_ripple={{ color: "rgba(255, 255, 255, 0.14)", borderless: true }}
                   accessibilityLabel={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   accessibilityRole="button"
                   hitSlop={8}
@@ -388,6 +482,7 @@ export default function AuthScreen() {
                 </Pressable>
               }
               secureTextEntry={!showPassword}
+              submitBehavior="blurAndSubmit"
               textContentType={mode === "login" ? "password" : "newPassword"}
               value={password}
             />
@@ -409,7 +504,37 @@ export default function AuthScreen() {
             </Text>
           </View>
         </View>
+
       </ScreenContainer>
+
+      {Platform.OS === "ios" ? (
+        <InputAccessoryView nativeID={PHONE_ACCESSORY_ID}>
+          <View style={styles.keyboardAccessory}>
+            <Pressable
+              accessibilityLabel="Đóng bàn phím"
+              accessibilityRole="button"
+              onPress={Keyboard.dismiss}
+              style={({ pressed }) => [
+                styles.keyboardAccessoryButton,
+                pressed && styles.keyboardAccessoryButtonPressed,
+              ]}
+            >
+              <Text style={styles.keyboardAccessoryText}>XONG</Text>
+            </Pressable>
+            <Pressable
+              accessibilityLabel="Chuyển đến ô email"
+              accessibilityRole="button"
+              onPress={() => emailRef.current?.focus()}
+              style={({ pressed }) => [
+                styles.keyboardAccessoryButton,
+                pressed && styles.keyboardAccessoryButtonPressed,
+              ]}
+            >
+              <Text style={styles.keyboardAccessoryText}>TIẾP</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -466,9 +591,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     maxWidth: 520,
     paddingBottom: SPACING.xxl,
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.md,
     paddingTop: SPACING.lg,
     width: "100%",
+  },
+  containerCompact: {
+    paddingBottom: SPACING.xl,
+    paddingTop: SPACING.md,
   },
   errorBanner: {
     alignItems: "flex-start",
@@ -514,6 +643,10 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     zIndex: 1,
   },
+  formPanelCompact: {
+    marginTop: SPACING.xl,
+    padding: SPACING.md,
+  },
   formTitle: {
     color: COLORS.textPrimary,
     fontFamily: FONT_FAMILIES.extraBold,
@@ -523,6 +656,9 @@ const styles = StyleSheet.create({
   hero: {
     marginTop: 54,
     zIndex: 1,
+  },
+  heroCompact: {
+    marginTop: SPACING.xxl,
   },
   heroAccent: {
     color: COLORS.primary,
@@ -547,6 +683,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     flex: 1,
   },
+  keyboardAccessory: {
+    alignItems: "center",
+    backgroundColor: COLORS.surface,
+    borderTopColor: COLORS.border,
+    borderTopWidth: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    minHeight: 48,
+    paddingHorizontal: SPACING.sm,
+  },
+  keyboardAccessoryButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+    minWidth: 64,
+    paddingHorizontal: SPACING.sm,
+  },
+  keyboardAccessoryButtonPressed: {
+    opacity: 0.65,
+  },
+  keyboardAccessoryText: {
+    color: COLORS.primary,
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: 13,
+  },
   kicker: {
     color: COLORS.primary,
     fontFamily: FONT_FAMILIES.bold,
@@ -569,6 +730,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     minHeight: 48,
+    overflow: "hidden",
     paddingHorizontal: SPACING.xs,
   },
   modeButtonActive: {

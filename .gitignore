@@ -1,1 +1,7 @@
 .codex/
+
+# Local environment files. Keep documented templates versioned.
+.env
+.env.*
+!.env.example
+!.env.template

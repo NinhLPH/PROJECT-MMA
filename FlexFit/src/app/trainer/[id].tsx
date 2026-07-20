@@ -17,6 +17,7 @@ import { TrainerProfileHero } from "@/components/trainer/TrainerProfileHero";
 import { AppButton } from "@/components/ui/AppButton";
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
 import { ROUTE_BUILDERS } from "@/constants/routes";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { Schedule } from "@/models/schedule";
 import type { Trainer } from "@/models/trainer";
 import { scheduleService, trainerService } from "@/services";
@@ -75,6 +76,7 @@ function getScheduleErrorMessage(): string {
 export default function TrainerDetailScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const router = useRouter();
+  const { contentPadding, isCompact } = useResponsiveLayout();
   const trainerId = Array.isArray(params.id) ? params.id[0] : params.id;
   const dateOptions = useMemo(() => createDateOptions(), []);
   const [selectedDate, setSelectedDate] = useState(dateOptions[0].apiDate);
@@ -118,7 +120,7 @@ export default function TrainerDetailScreen() {
     setSelectedScheduleId(null);
 
     try {
-      const nextSchedules = await scheduleService.getAvailable(trainerId, selectedDate);
+      const nextSchedules = await scheduleService.getForDate(trainerId, selectedDate);
       if (requestId === scheduleRequestId.current) {
         setSchedules(nextSchedules);
       }
@@ -145,10 +147,14 @@ export default function TrainerDetailScreen() {
     };
   }, [loadSchedules]);
 
-  const selectedSchedule = schedules.find((schedule) => schedule.id === selectedScheduleId) ?? null;
+  const availableScheduleCount = schedules.filter((schedule) => !schedule.isBooked).length;
+  const selectedSchedule = schedules.find(
+    (schedule) => schedule.id === selectedScheduleId && !schedule.isBooked,
+  ) ?? null;
   const selectedDateOption = dateOptions.find((option) => option.apiDate === selectedDate) ?? dateOptions[0];
 
   const selectSchedule = useCallback((schedule: Schedule) => {
+    if (schedule.isBooked) return;
     setSelectedScheduleId((currentId) => currentId === schedule.id ? null : schedule.id);
   }, []);
 
@@ -171,7 +177,11 @@ export default function TrainerDetailScreen() {
     return (
       <View style={styles.root}>
         <Stack.Screen options={{ title: "Hồ sơ PT" }} />
-        <View accessibilityRole="alert" style={styles.fullState}>
+        <SafeAreaView
+          accessibilityRole="alert"
+          edges={["bottom", "left", "right"]}
+          style={styles.fullState}
+        >
           <View style={styles.stateIcon}>
             <SymbolView
               name={{ android: "person_off", ios: "person.crop.circle.badge.exclamationmark", web: "person_off" }}
@@ -182,7 +192,7 @@ export default function TrainerDetailScreen() {
           <Text style={styles.stateTitle}>KHÔNG THỂ MỞ HỒ SƠ</Text>
           <Text style={styles.stateDescription}>{trainerError}</Text>
           <AppButton label="THỬ TẢI LẠI" onPress={() => void loadTrainer()} />
-        </View>
+        </SafeAreaView>
       </View>
     );
   }
@@ -191,11 +201,11 @@ export default function TrainerDetailScreen() {
     <View style={styles.root}>
       <Stack.Screen options={{ title: trainer.fullName }} />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingHorizontal: contentPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentWidth}>
-          <TrainerProfileHero trainer={trainer} />
+          <TrainerProfileHero compact={isCompact} trainer={trainer} />
 
           <SectionHeading
             description="Chọn một trong 7 ngày gần nhất"
@@ -225,7 +235,9 @@ export default function TrainerDetailScreen() {
             description={
               isScheduleLoading
                 ? "Đang kiểm tra lịch trống"
-                : `${schedules.length} ca có thể đặt`
+                : availableScheduleCount === 0
+                  ? "Không còn ca trống cho ngày này"
+                  : `${availableScheduleCount} ca có thể đặt`
             }
             step="02"
             title="CHỌN CA TẬP"
@@ -251,25 +263,39 @@ export default function TrainerDetailScreen() {
               title="CHƯA CÓ CA TRỐNG"
             />
           ) : (
-            <View style={styles.slotGrid}>
-              {schedules.map((schedule) => (
-                <TimeSlotCard
-                  key={schedule.id}
-                  onPress={selectSchedule}
-                  schedule={schedule}
-                  selected={schedule.id === selectedScheduleId}
-                />
-              ))}
-            </View>
+            <>
+              <View style={styles.slotGrid}>
+                {schedules.map((schedule) => (
+                  <TimeSlotCard
+                    key={schedule.id}
+                    onPress={selectSchedule}
+                    schedule={schedule}
+                    selected={schedule.id === selectedScheduleId}
+                    fullWidth={isCompact}
+                  />
+                ))}
+              </View>
+              {availableScheduleCount === 0 ? (
+                <Text accessibilityRole="alert" style={styles.allBookedNotice}>
+                  Tất cả ca tập trong ngày này đã kín. Hãy chọn một ngày khác để đặt lịch.
+                </Text>
+              ) : null}
+            </>
           )}
         </View>
       </ScrollView>
 
       <SafeAreaView edges={["bottom"]} style={styles.footerSafeArea}>
-        <View style={styles.footer}>
-          <View style={styles.footerSummary}>
+        <View style={[styles.footer, { paddingHorizontal: contentPadding }]}>
+          <View style={[styles.footerSummary, isCompact && styles.footerSummaryCompact]}>
             <Text style={styles.footerLabel}>CA ĐÃ CHỌN</Text>
-            <Text numberOfLines={1} style={[styles.footerValue, !selectedSchedule && styles.footerPlaceholder]}>
+            <Text
+              style={[
+                styles.footerValue,
+                isCompact && styles.footerValueCompact,
+                !selectedSchedule && styles.footerPlaceholder,
+              ]}
+            >
               {selectedSchedule
                 ? `${selectedDateOption.isToday ? "Hôm nay" : selectedDateOption.weekday} · ${selectedSchedule.timeSlot}`
                 : "Chọn ngày và giờ để tiếp tục"}
@@ -414,13 +440,20 @@ const styles = StyleSheet.create({
   sectionDescription: {
     color: COLORS.textMuted,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: SPACING.xxs,
   },
   slotGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: SPACING.xs,
+  },
+  allBookedNotice: {
+    color: COLORS.textSecondary,
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: SPACING.sm,
   },
   slotLoading: {
     alignItems: "center",
@@ -437,7 +470,7 @@ const styles = StyleSheet.create({
   slotLoadingText: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 10,
+    fontSize: 12,
     letterSpacing: 1,
   },
   inlineState: {
@@ -462,14 +495,14 @@ const styles = StyleSheet.create({
   inlineStateDescription: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 12,
+    lineHeight: 18,
     marginTop: SPACING.xs,
   },
   inlineAction: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: SPACING.xs,
   },
   inlineActionPressed: {
@@ -501,18 +534,26 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     justifyContent: "space-between",
   },
+  footerSummaryCompact: {
+    alignItems: "flex-start",
+    flexDirection: "column",
+    gap: SPACING.xxs,
+  },
   footerLabel: {
     color: COLORS.textMuted,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 9,
+    fontSize: 12,
     letterSpacing: 1,
   },
   footerValue: {
     color: COLORS.textPrimary,
     flex: 1,
     fontFamily: FONT_FAMILIES.semibold,
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "right",
+  },
+  footerValueCompact: {
+    textAlign: "left",
   },
   footerPlaceholder: {
     color: COLORS.textMuted,

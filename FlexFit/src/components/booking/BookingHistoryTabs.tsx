@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 export type BookingHistoryTab = "history" | "upcoming";
 
@@ -17,8 +18,10 @@ export function BookingHistoryTabs({
   selectedTab,
   upcomingCount,
 }: BookingHistoryTabsProps) {
+  const { isCompact } = useResponsiveLayout();
+
   return (
-    <View accessibilityRole="tablist" style={styles.container}>
+    <View accessibilityRole="tablist" style={[styles.container, isCompact && styles.containerCompact]}>
       <TabButton
         count={upcomingCount}
         label="SẮP DIỄN RA"
@@ -45,6 +48,7 @@ type TabButtonProps = {
 function TabButton({ count, label, onPress, selected }: TabButtonProps) {
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.14)" }}
       accessibilityLabel={`${label}, ${count} lịch`}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
@@ -52,7 +56,7 @@ function TabButton({ count, label, onPress, selected }: TabButtonProps) {
       style={({ pressed }) => [
         styles.tab,
         selected && styles.selectedTab,
-        pressed && styles.pressed,
+        pressed && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       <Text style={[styles.label, selected && styles.selectedLabel]}>{label}</Text>
@@ -73,6 +77,9 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     padding: SPACING.xs,
   },
+  containerCompact: {
+    flexDirection: "column",
+  },
   tab: {
     alignItems: "center",
     borderColor: COLORS.surface,
@@ -83,6 +90,7 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     justifyContent: "center",
     minHeight: 48,
+    overflow: "hidden",
     paddingHorizontal: SPACING.xs,
   },
   selectedTab: {
@@ -95,8 +103,10 @@ const styles = StyleSheet.create({
   label: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.5,
+    flexShrink: 1,
+    textAlign: "center",
   },
   selectedLabel: {
     color: COLORS.white,

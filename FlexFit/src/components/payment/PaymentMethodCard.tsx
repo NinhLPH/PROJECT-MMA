@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { COLORS, FONT_FAMILIES, RADIUS, SPACING } from "@/constants/theme";
@@ -25,6 +25,7 @@ const iconNames = {
 export function PaymentMethodCard({ method, onPress, selected = false }: PaymentMethodCardProps) {
   return (
     <Pressable
+      android_ripple={{ color: "rgba(255, 255, 255, 0.16)" }}
       accessibilityLabel={`${method.label}. ${method.description}`}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected, selected }}
@@ -32,7 +33,7 @@ export function PaymentMethodCard({ method, onPress, selected = false }: Payment
       style={({ pressed }) => [
         styles.card,
         selected && styles.selectedCard,
-        pressed && styles.pressed,
+        pressed && Platform.OS !== "android" && styles.pressed,
       ]}
     >
       <View style={[styles.iconFrame, selected && styles.selectedIconFrame]}>
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: SPACING.sm,
     minHeight: 76,
+    overflow: "hidden",
     padding: SPACING.sm,
   },
   selectedCard: {
@@ -98,8 +100,8 @@ const styles = StyleSheet.create({
   description: {
     color: COLORS.textSecondary,
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 18,
     marginTop: SPACING.xxs,
   },
   radio: {
